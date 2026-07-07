@@ -1,0 +1,145 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 16px;
+  font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background: #f5f5f5;
+  color: #222;
+}
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+h1 {
+  font-size: 1.4rem;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 12px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  background: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.tab-btn.active {
+  background: #2f6f4f;
+  color: #fff;
+  border-color: #2f6f4f;
+}
+
+.summary {
+  text-align: center;
+  margin-bottom: 12px;
+  font-size: 0.95rem;
+  color: #555;
+}
+
+.panel {
+  display: none;
+  background: #fff;
+  border-radius: 8px;
+  overflow-x: auto;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.panel.active {
+  display: block;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+}
+
+th, td {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+  font-size: 0.95rem;
+}
+
+th {
+  background: #fafafa;
+  white-space: nowrap;
+}
+
+td.editable {
+  cursor: pointer;
+}
+
+td.editable:hover {
+  background: #f0f7f3;
+}
+
+td input {
+  width: 100%;
+  padding: 6px;
+  font-size: 0.95rem;
+  border: 1px solid #2f6f4f;
+  border-radius: 4px;
+}
+
+button {
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-hapus {
+  background: #d9534f;
+  color: #fff;
+}
+
+.btn-pulihkan {
+  background: #2f6f4f;
+  color: #fff;
+}
+
+.add-row input {
+  width: 100%;
+  padding: 8px;
+  font-size: 0.95rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+#btn-tambah {
+  background: #2f6f4f;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.empty-row td {
+  text-align: center;
+  color: #999;
+  padding: 20px;
+}
+
+@media (max-width: 600px) {
+  h1 {
+    font-size: 1.2rem;
+  }
+  th, td {
+    padding: 8px 6px;
+    font-size: 0.85rem;
+  }
+}

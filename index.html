@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>List Tamu - Andi & Mita</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="container">
+  <h1>List Tamu</h1>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="list">List (<span id="count-list">0</span>)</button>
+    <button class="tab-btn" data-tab="dihapus">Dihapus (<span id="count-dihapus">0</span>)</button>
+  </div>
+
+  <div id="summary" class="summary"></div>
+
+  <div id="panel-list" class="panel active">
+    <table>
+      <thead>
+        <tr>
+          <th>Group Tamu</th>
+          <th>Nama</th>
+          <th>Kategori Tamu</th>
+          <th>Jumlah Orang</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="body-list"></tbody>
+      <tfoot>
+        <tr class="add-row">
+          <td><input type="text" id="add-group" placeholder="Group Tamu" /></td>
+          <td><input type="text" id="add-nama" placeholder="Nama" /></td>
+          <td><input type="text" id="add-kategori" placeholder="Kategori Tamu" /></td>
+          <td><input type="number" id="add-jumlah" placeholder="1" min="1" value="1" /></td>
+          <td><button id="btn-tambah">Tambah Tamu</button></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <div id="panel-dihapus" class="panel">
+    <table>
+      <thead>
+        <tr>
+          <th>Group Tamu</th>
+          <th>Nama</th>
+          <th>Kategori Tamu</th>
+          <th>Jumlah Orang</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="body-dihapus"></tbody>
+    </table>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="app.js"></script>
+</body>
+</html>
