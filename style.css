@@ -170,7 +170,7 @@ td.editable:hover {
   background: rgba(26, 135, 84, 0.08);
 }
 
-td input, td select {
+td input {
   width: 100%;
   padding: 5px;
   font-size: 0.85rem;
@@ -201,24 +201,17 @@ td input, td select {
   font-size: 0.8rem;
 }
 
-/* Lebar kolom: Nama fleksibel, Kategori sedang, Jumlah & Aksi seminim mungkin */
+/* Lebar kolom: Nama fleksibel, Jumlah & Aksi seminim mungkin */
 th:nth-child(1), td:nth-child(1) {
   width: auto;
 }
 th:nth-child(2), td:nth-child(2) {
-  width: 26%;
-  white-space: normal;
-  overflow-wrap: break-word;
-  font-size: 0.76rem;
-  line-height: 1.25;
-}
-th:nth-child(3), td:nth-child(3) {
   width: 40px;
   text-align: center;
   padding-left: 2px;
   padding-right: 2px;
 }
-th:nth-child(4), td:nth-child(4) {
+th:nth-child(3), td:nth-child(3) {
   width: 80px;
 }
 
@@ -315,8 +308,7 @@ button {
   text-align: center;
 }
 
-.modal-card input,
-.modal-card select {
+.modal-card input {
   padding: 10px;
   font-size: 0.95rem;
   border: 1px solid #ccc;

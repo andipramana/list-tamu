@@ -7,15 +7,6 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-const KATEGORI_OPTIONS = [
-  'Keluarga Inti',
-  'Keluarga Ema Cucun',
-  'Keluarga Nini',
-  'Teman Iyow',
-  'Teman Mamah Bapa',
-  'Lainnya',
-];
-
 let allTamu = [];
 
 const bodyList = document.getElementById('body-list');
@@ -89,7 +80,7 @@ function renderRows(tbody, rows, isDihapus) {
   if (rows.length === 0) {
     const tr = document.createElement('tr');
     tr.className = 'empty-row';
-    tr.innerHTML = `<td colspan="4">${isDihapus ? 'Belum ada tamu yang dihapus' : 'Belum ada tamu'}</td>`;
+    tr.innerHTML = `<td colspan="3">${isDihapus ? 'Belum ada tamu yang dihapus' : 'Belum ada tamu'}</td>`;
     tbody.appendChild(tr);
     return;
   }
@@ -100,7 +91,7 @@ function renderRows(tbody, rows, isDihapus) {
     const headerTr = document.createElement('tr');
     headerTr.className = 'group-header';
     const headerTd = document.createElement('td');
-    headerTd.colSpan = 4;
+    headerTd.colSpan = 3;
     headerTd.textContent = groupName;
     if (!isDihapus) {
       headerTd.classList.add('editable-group');
@@ -123,7 +114,6 @@ function makeGuestRow(t, isDihapus) {
   const tr = document.createElement('tr');
 
   tr.appendChild(makeEditableCell(t, 'nama', isDihapus));
-  tr.appendChild(makeEditableCell(t, 'kategori', isDihapus, 'select'));
   tr.appendChild(makeEditableCell(t, 'jumlah', isDihapus, 'number'));
 
   const actionTd = document.createElement('td');
@@ -208,31 +198,18 @@ function makeEditableCell(row, field, isDihapus, inputType) {
 }
 
 function startEdit(td, row, field, inputType) {
-  if (td.querySelector('input, select')) return;
+  if (td.querySelector('input')) return;
 
   const currentValue = row[field] == null ? '' : row[field];
-  let input;
-
-  if (inputType === 'select') {
-    input = document.createElement('select');
-    for (const opt of KATEGORI_OPTIONS) {
-      const optionEl = document.createElement('option');
-      optionEl.value = opt;
-      optionEl.textContent = opt;
-      if (opt === currentValue) optionEl.selected = true;
-      input.appendChild(optionEl);
-    }
-  } else {
-    input = document.createElement('input');
-    input.type = inputType === 'number' ? 'number' : 'text';
-    input.value = currentValue;
-    if (inputType === 'number') input.min = '1';
-  }
+  const input = document.createElement('input');
+  input.type = inputType === 'number' ? 'number' : 'text';
+  input.value = currentValue;
+  if (inputType === 'number') input.min = '1';
 
   td.textContent = '';
   td.appendChild(input);
   input.focus();
-  if (inputType !== 'select') input.select();
+  input.select();
 
   const finish = () => saveEdit(td, row, field, input, inputType);
   input.addEventListener('blur', finish);
@@ -242,9 +219,6 @@ function startEdit(td, row, field, inputType) {
       td.textContent = currentValue;
     }
   });
-  if (inputType === 'select') {
-    input.addEventListener('change', finish);
-  }
 }
 
 async function saveEdit(td, row, field, input, inputType) {
@@ -287,7 +261,6 @@ function closeModal() {
   modalTambah.classList.add('hidden');
   document.getElementById('add-group').value = '';
   document.getElementById('add-nama').value = '';
-  document.getElementById('add-kategori').value = '';
   document.getElementById('add-jumlah').value = '1';
 }
 
@@ -302,7 +275,6 @@ document.getElementById('btn-tambah').addEventListener('click', addTamu);
 async function addTamu() {
   const group = document.getElementById('add-group').value.trim();
   const nama = document.getElementById('add-nama').value.trim();
-  const kategori = document.getElementById('add-kategori').value;
   const jumlah = parseInt(document.getElementById('add-jumlah').value, 10) || 1;
 
   if (!nama) {
@@ -313,7 +285,6 @@ async function addTamu() {
   const { error } = await supabaseClient.from('tamu').insert({
     group_tamu: group || null,
     nama,
-    kategori: kategori || null,
     jumlah,
   });
 
