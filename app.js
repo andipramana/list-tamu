@@ -18,6 +18,43 @@ const statOrang = document.getElementById('stat-orang');
 const groupSuggestions = document.getElementById('group-suggestions');
 const fabTambah = document.getElementById('fab-tambah');
 
+// ---- Modal alert/confirm (pengganti alert()/confirm() bawaan browser) ----
+
+const modalConfirm = document.getElementById('modal-confirm');
+const confirmMessage = document.getElementById('confirm-message');
+const confirmOk = document.getElementById('confirm-ok');
+const confirmCancel = document.getElementById('confirm-cancel');
+
+function showDialog(message, { okLabel = 'OK', showCancel = false, danger = false } = {}) {
+  return new Promise((resolve) => {
+    confirmMessage.textContent = message;
+    confirmOk.textContent = okLabel;
+    confirmOk.classList.toggle('btn-danger', danger);
+    confirmCancel.classList.toggle('hidden', !showCancel);
+    modalConfirm.classList.remove('hidden');
+
+    function cleanup(result) {
+      modalConfirm.classList.add('hidden');
+      confirmOk.removeEventListener('click', onOk);
+      confirmCancel.removeEventListener('click', onCancel);
+      resolve(result);
+    }
+    function onOk() { cleanup(true); }
+    function onCancel() { cleanup(false); }
+
+    confirmOk.addEventListener('click', onOk);
+    confirmCancel.addEventListener('click', onCancel);
+  });
+}
+
+function showAlert(message) {
+  return showDialog(message, { okLabel: 'OK', showCancel: false });
+}
+
+function showConfirm(message, okLabel = 'Ya', danger = false) {
+  return showDialog(message, { okLabel, showCancel: true, danger });
+}
+
 // ---- Fetch & render ----
 
 async function fetchTamu() {
@@ -27,7 +64,7 @@ async function fetchTamu() {
     .order('id', { ascending: true });
 
   if (error) {
-    alert('Gagal memuat data: ' + error.message);
+    await showAlert('Gagal memuat data: ' + error.message);
     return;
   }
   allTamu = data;
@@ -168,7 +205,7 @@ function startGroupEdit(td, oldGroupName) {
       .eq('group_tamu', oldGroupName);
 
     if (error) {
-      alert('Gagal mengubah nama grup: ' + error.message);
+      await showAlert('Gagal mengubah nama grup: ' + error.message);
       td.textContent = oldGroupName;
       return;
     }
@@ -239,7 +276,7 @@ async function saveEdit(td, row, field, input, inputType) {
     .eq('id', row.id);
 
   if (error) {
-    alert('Gagal menyimpan perubahan: ' + error.message);
+    await showAlert('Gagal menyimpan perubahan: ' + error.message);
     td.textContent = oldValue;
     return;
   }
@@ -278,7 +315,7 @@ async function addTamu() {
   const jumlah = parseInt(document.getElementById('add-jumlah').value, 10) || 1;
 
   if (!nama) {
-    alert('Nama tamu wajib diisi');
+    await showAlert('Nama tamu wajib diisi');
     return;
   }
 
@@ -289,7 +326,7 @@ async function addTamu() {
   });
 
   if (error) {
-    alert('Gagal menambah tamu: ' + error.message);
+    await showAlert('Gagal menambah tamu: ' + error.message);
     return;
   }
 
@@ -299,14 +336,15 @@ async function addTamu() {
 // ---- Hapus & pulihkan ----
 
 async function deleteTamu(id, nama) {
-  if (!confirm(`Hapus "${nama}" dari list? Masih bisa dipulihkan dari tab Dihapus.`)) return;
+  const ok = await showConfirm(`Hapus "${nama}" dari list? Masih bisa dipulihkan dari tab Dihapus.`, 'Hapus');
+  if (!ok) return;
 
   const { error } = await supabaseClient
     .from('tamu')
     .update({ is_deleted: true, deleted_at: new Date().toISOString() })
     .eq('id', id);
 
-  if (error) alert('Gagal menghapus: ' + error.message);
+  if (error) await showAlert('Gagal menghapus: ' + error.message);
 }
 
 async function restoreTamu(id) {
@@ -315,18 +353,19 @@ async function restoreTamu(id) {
     .update({ is_deleted: false, deleted_at: null })
     .eq('id', id);
 
-  if (error) alert('Gagal memulihkan: ' + error.message);
+  if (error) await showAlert('Gagal memulihkan: ' + error.message);
 }
 
 async function deletePermanent(id, nama) {
-  if (!confirm(`Hapus permanen "${nama}"? Data ini TIDAK BISA dikembalikan lagi.`)) return;
+  const ok = await showConfirm(`Hapus permanen "${nama}"? Data ini TIDAK BISA dikembalikan lagi.`, 'Hapus Permanen', true);
+  if (!ok) return;
 
   const { error } = await supabaseClient
     .from('tamu')
     .delete()
     .eq('id', id);
 
-  if (error) alert('Gagal menghapus permanen: ' + error.message);
+  if (error) await showAlert('Gagal menghapus permanen: ' + error.message);
 }
 
 // ---- Tab switching ----

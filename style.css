@@ -330,12 +330,27 @@ button {
   font-size: 0.9rem;
 }
 
+.btn-secondary.hidden {
+  display: none;
+}
+
 .btn-primary {
   flex: 1;
   background: var(--color-primary);
   color: #fff;
   padding: 10px;
   font-size: 0.9rem;
+}
+
+.btn-primary.btn-danger {
+  background: var(--color-danger-dark);
+}
+
+#confirm-message {
+  margin: 0 0 4px 0;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  text-align: center;
 }
 
 @media (max-width: 600px) {
