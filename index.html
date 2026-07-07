@@ -16,7 +16,16 @@
     <button class="tab-btn" data-tab="dihapus">Dihapus (<span id="count-dihapus">0</span>)</button>
   </div>
 
-  <div id="summary" class="summary"></div>
+  <div class="stats">
+    <div class="stat-tile">
+      <div class="stat-value" id="stat-tamu">0</div>
+      <div class="stat-label">Baris Tamu</div>
+    </div>
+    <div class="stat-tile">
+      <div class="stat-value" id="stat-orang">0</div>
+      <div class="stat-label">Total Orang</div>
+    </div>
+  </div>
 
   <div id="panel-list" class="panel active">
     <div class="table-scroll">
@@ -25,30 +34,12 @@
           <tr>
             <th>Nama</th>
             <th>Kategori</th>
-            <th>Jumlah</th>
+            <th>Jml</th>
             <th></th>
           </tr>
         </thead>
         <tbody id="body-list"></tbody>
       </table>
-    </div>
-    <div class="add-bar">
-      <input type="text" id="add-nama" placeholder="Nama tamu" />
-      <div class="add-bar-row">
-        <input type="text" id="add-group" list="group-suggestions" placeholder="Group Tamu (opsional)" />
-        <datalist id="group-suggestions"></datalist>
-        <select id="add-kategori">
-          <option value="" disabled selected>Kategori</option>
-          <option value="Keluarga Inti">Keluarga Inti</option>
-          <option value="Keluarga Ema Cucun">Keluarga Ema Cucun</option>
-          <option value="Keluarga Nini">Keluarga Nini</option>
-          <option value="Teman Iyow">Teman Iyow</option>
-          <option value="Teman Mamah Bapa">Teman Mamah Bapa</option>
-          <option value="Lainnya">Lainnya</option>
-        </select>
-        <input type="number" id="add-jumlah" placeholder="1" min="1" value="1" />
-        <button id="btn-tambah">Tambah Tamu</button>
-      </div>
     </div>
   </div>
 
@@ -59,12 +50,37 @@
           <tr>
             <th>Nama</th>
             <th>Kategori</th>
-            <th>Jumlah</th>
+            <th>Jml</th>
             <th></th>
           </tr>
         </thead>
         <tbody id="body-dihapus"></tbody>
       </table>
+    </div>
+  </div>
+</div>
+
+<button id="fab-tambah" class="fab" aria-label="Tambah Tamu">+</button>
+
+<div id="modal-tambah" class="modal-overlay hidden">
+  <div class="modal-card">
+    <h2>Tambah Tamu</h2>
+    <input type="text" id="add-nama" placeholder="Nama tamu" />
+    <input type="text" id="add-group" list="group-suggestions" placeholder="Group Tamu (opsional)" />
+    <datalist id="group-suggestions"></datalist>
+    <select id="add-kategori">
+      <option value="" disabled selected>Pilih Kategori</option>
+      <option value="Keluarga Inti">Keluarga Inti</option>
+      <option value="Keluarga Ema Cucun">Keluarga Ema Cucun</option>
+      <option value="Keluarga Nini">Keluarga Nini</option>
+      <option value="Teman Iyow">Teman Iyow</option>
+      <option value="Teman Mamah Bapa">Teman Mamah Bapa</option>
+      <option value="Lainnya">Lainnya</option>
+    </select>
+    <input type="number" id="add-jumlah" placeholder="Jumlah orang" min="1" value="1" />
+    <div class="modal-actions">
+      <button id="btn-batal" class="btn-secondary">Batal</button>
+      <button id="btn-tambah" class="btn-primary">Tambah Tamu</button>
     </div>
   </div>
 </div>

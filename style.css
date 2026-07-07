@@ -1,12 +1,31 @@
+/*
+  Sistem warna (per fungsi, bukan per elemen) - biar konsisten & gak bikin bingung:
+  - Hijau  (--color-primary)  = aksi utama: Tambah Tamu, Pulihkan
+  - Biru   (--color-nav)      = navigasi: tab aktif
+  - Merah  (--color-danger)   = hapus (soft delete)
+  - Merah tua (--color-danger-dark) = hapus permanen (tidak bisa dibatalkan)
+  - Krem netral (--color-group) = label grup (bukan tombol, jadi sengaja tidak mencolok)
+*/
+:root {
+  --color-primary: #1a8754;
+  --color-primary-dark: #146341;
+  --color-nav: #2c5282;
+  --color-danger: #dc3545;
+  --color-danger-dark: #7a1f1a;
+  --color-group-bg: #f2ecdd;
+  --color-group-text: #5c4f2f;
+}
+
 * {
   box-sizing: border-box;
 }
 
-html, body {
+html {
   height: 100%;
 }
 
 body {
+  height: 100dvh;
   margin: 0;
   padding: 0;
   font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif;
@@ -26,6 +45,7 @@ body {
   display: flex;
   flex-direction: column;
   padding: 12px 12px 0 12px;
+  overflow-x: hidden;
 }
 
 h1 {
@@ -48,22 +68,46 @@ h1 {
   font-size: 1rem;
   border: 1px solid #ccc;
   background: #fff;
+  color: #444;
   border-radius: 8px;
   cursor: pointer;
 }
 
 .tab-btn.active {
-  background: #2f6f4f;
+  background: var(--color-nav);
   color: #fff;
-  border-color: #2f6f4f;
+  border-color: var(--color-nav);
 }
 
-.summary {
-  text-align: center;
+/* Highlight jumlah tamu & jumlah orang */
+.stats {
+  display: flex;
+  gap: 8px;
   margin-bottom: 10px;
-  font-size: 0.9rem;
-  color: #555;
   flex-shrink: 0;
+}
+
+.stat-tile {
+  flex: 1;
+  background: #eef3f0;
+  border-radius: 10px;
+  padding: 10px 6px;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  line-height: 1.1;
+}
+
+.stat-label {
+  font-size: 0.72rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-top: 2px;
 }
 
 .panel {
@@ -72,9 +116,10 @@ h1 {
   flex: 1;
   min-height: 0;
   background: #fff;
-  border-radius: 8px 8px 0 0;
+  border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   overflow: hidden;
+  margin-bottom: 12px;
 }
 
 .panel.active {
@@ -85,18 +130,27 @@ h1 {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Ruang ekstra di bawah supaya baris terakhir tidak ketutup FAB Tambah Tamu */
+#panel-list .table-scroll {
+  padding-bottom: 76px;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
 th, td {
-  padding: 10px 8px;
+  padding: 9px 6px;
   border-bottom: 1px solid #eee;
   text-align: left;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 thead th {
@@ -113,121 +167,74 @@ td.editable {
 }
 
 td.editable:hover {
-  background: rgba(47, 111, 79, 0.08);
+  background: rgba(26, 135, 84, 0.08);
 }
 
 td input, td select {
   width: 100%;
-  padding: 6px;
-  font-size: 0.9rem;
-  border: 1px solid #2f6f4f;
+  padding: 5px;
+  font-size: 0.85rem;
+  border: 1px solid var(--color-primary);
   border-radius: 4px;
 }
 
-/* Baris judul section per grup - jadi penanda batas antar grup */
+/* Baris judul section per grup - label netral, bukan tombol, jadi sengaja tidak mencolok */
 .group-header td {
   font-weight: bold;
-  padding: 8px;
-  font-size: 0.85rem;
-  background: #2f6f4f;
-  color: #fff;
+  padding: 7px 6px;
+  font-size: 0.8rem;
+  background: var(--color-group-bg);
+  color: var(--color-group-text);
 }
 
-/* Kolom Nama sedikit lebih lebar, Jumlah & Aksi sekecil mungkin */
-td:nth-child(1), th:nth-child(1) {
-  width: 46%;
+/* Lebar kolom: Nama fleksibel, Kategori sedang, Jumlah & Aksi seminim mungkin */
+th:nth-child(1), td:nth-child(1) {
+  width: auto;
 }
-td:nth-child(3), th:nth-child(3) {
-  width: 60px;
-}
-td:nth-child(4), th:nth-child(4) {
-  width: 1%;
+th:nth-child(2), td:nth-child(2) {
+  width: 26%;
   white-space: nowrap;
+}
+th:nth-child(3), td:nth-child(3) {
+  width: 40px;
+  text-align: center;
+  padding-left: 2px;
+  padding-right: 2px;
+}
+th:nth-child(4), td:nth-child(4) {
+  width: 80px;
 }
 
 button {
-  padding: 7px 10px;
-  font-size: 0.82rem;
+  padding: 5px 4px;
+  font-size: 0.72rem;
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  white-space: nowrap;
+  white-space: normal;
+  line-height: 1.2;
 }
 
 .btn-hapus {
-  background: #d9534f;
+  background: var(--color-danger);
   color: #fff;
+  width: 100%;
 }
 
 .action-cell {
   display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .btn-pulihkan {
-  background: #2f6f4f;
+  background: var(--color-primary);
   color: #fff;
 }
 
 .btn-hapus-permanen {
-  background: #7a1f1a;
+  background: var(--color-danger-dark);
   color: #fff;
-}
-
-.add-bar {
-  flex-shrink: 0;
-  border-top: 1px solid #ddd;
-  padding: 10px;
-  background: #fff;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.add-bar input#add-nama {
-  width: 100%;
-  padding: 10px;
-  font-size: 0.95rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-}
-
-.add-bar-row {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.add-bar-row input,
-.add-bar-row select {
-  padding: 8px;
-  font-size: 0.9rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-}
-
-.add-bar-row input#add-group {
-  flex: 1 1 120px;
-  min-width: 0;
-}
-
-.add-bar-row select#add-kategori {
-  flex: 1 1 110px;
-  min-width: 0;
-}
-
-.add-bar-row input#add-jumlah {
-  flex: 0 1 60px;
-  min-width: 0;
-}
-
-#btn-tambah {
-  flex: 1 1 100%;
-  background: #2f6f4f;
-  color: #fff;
-  padding: 10px;
-  font-size: 0.95rem;
 }
 
 .empty-row td {
@@ -236,16 +243,101 @@ button {
   padding: 20px;
 }
 
+/* Tombol Tambah Tamu - floating action button, selalu terlihat tanpa scroll */
+.fab {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 1.8rem;
+  line-height: 1;
+  border: none;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+  cursor: pointer;
+  z-index: 10;
+}
+
+.fab.hidden {
+  display: none;
+}
+
+/* Modal tambah tamu */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  padding: 16px;
+}
+
+.modal-overlay.hidden {
+  display: none;
+}
+
+.modal-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modal-card h2 {
+  margin: 0 0 4px 0;
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+.modal-card input,
+.modal-card select {
+  padding: 10px;
+  font-size: 0.95rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  width: 100%;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.btn-secondary {
+  flex: 1;
+  background: #e5e5e5;
+  color: #333;
+  padding: 10px;
+  font-size: 0.9rem;
+}
+
+.btn-primary {
+  flex: 1;
+  background: var(--color-primary);
+  color: #fff;
+  padding: 10px;
+  font-size: 0.9rem;
+}
+
 @media (max-width: 600px) {
   h1 {
     font-size: 1.15rem;
   }
   th, td {
-    padding: 8px 6px;
-    font-size: 0.82rem;
+    padding: 7px 5px;
+    font-size: 0.8rem;
   }
-  button {
-    padding: 6px 8px;
-    font-size: 0.78rem;
+  .stat-value {
+    font-size: 1.4rem;
   }
 }

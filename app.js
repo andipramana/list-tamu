@@ -22,8 +22,10 @@ const bodyList = document.getElementById('body-list');
 const bodyDihapus = document.getElementById('body-dihapus');
 const countList = document.getElementById('count-list');
 const countDihapus = document.getElementById('count-dihapus');
-const summary = document.getElementById('summary');
+const statTamu = document.getElementById('stat-tamu');
+const statOrang = document.getElementById('stat-orang');
 const groupSuggestions = document.getElementById('group-suggestions');
+const fabTambah = document.getElementById('fab-tambah');
 
 // ---- Fetch & render ----
 
@@ -49,7 +51,8 @@ function render() {
   countDihapus.textContent = dihapus.length;
 
   const totalOrang = list.reduce((sum, t) => sum + (t.jumlah || 0), 0);
-  summary.textContent = `${list.length} baris tamu - ${totalOrang} orang`;
+  statTamu.textContent = list.length;
+  statOrang.textContent = totalOrang;
 
   renderGroupSuggestions(list);
   renderRows(bodyList, list, false);
@@ -227,7 +230,28 @@ async function saveEdit(td, row, field, input, inputType) {
   td.textContent = row[field] == null ? '' : row[field];
 }
 
-// ---- Tambah tamu ----
+// ---- Tambah tamu (FAB + modal) ----
+
+const modalTambah = document.getElementById('modal-tambah');
+
+function openModal() {
+  modalTambah.classList.remove('hidden');
+  document.getElementById('add-nama').focus();
+}
+
+function closeModal() {
+  modalTambah.classList.add('hidden');
+  document.getElementById('add-group').value = '';
+  document.getElementById('add-nama').value = '';
+  document.getElementById('add-kategori').value = '';
+  document.getElementById('add-jumlah').value = '1';
+}
+
+fabTambah.addEventListener('click', openModal);
+document.getElementById('btn-batal').addEventListener('click', closeModal);
+modalTambah.addEventListener('click', (e) => {
+  if (e.target === modalTambah) closeModal();
+});
 
 document.getElementById('btn-tambah').addEventListener('click', addTamu);
 
@@ -254,10 +278,7 @@ async function addTamu() {
     return;
   }
 
-  document.getElementById('add-group').value = '';
-  document.getElementById('add-nama').value = '';
-  document.getElementById('add-kategori').value = '';
-  document.getElementById('add-jumlah').value = '1';
+  closeModal();
 }
 
 // ---- Hapus & pulihkan ----
@@ -301,6 +322,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
     document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+    fabTambah.classList.toggle('hidden', btn.dataset.tab !== 'list');
   });
 });
 
