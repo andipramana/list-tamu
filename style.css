@@ -193,7 +193,10 @@ th:nth-child(1), td:nth-child(1) {
 }
 th:nth-child(2), td:nth-child(2) {
   width: 26%;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: break-word;
+  font-size: 0.76rem;
+  line-height: 1.25;
 }
 th:nth-child(3), td:nth-child(3) {
   width: 40px;
