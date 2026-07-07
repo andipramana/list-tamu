@@ -7,6 +7,15 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+const KATEGORI_OPTIONS = [
+  'Keluarga Inti',
+  'Keluarga Ema Cucun',
+  'Keluarga Nini',
+  'Teman Iyow',
+  'Teman Mamah Bapa',
+  'Lainnya',
+];
+
 let allTamu = [];
 
 const bodyList = document.getElementById('body-list');
@@ -14,6 +23,7 @@ const bodyDihapus = document.getElementById('body-dihapus');
 const countList = document.getElementById('count-list');
 const countDihapus = document.getElementById('count-dihapus');
 const summary = document.getElementById('summary');
+const groupSuggestions = document.getElementById('group-suggestions');
 
 // ---- Fetch & render ----
 
@@ -41,8 +51,33 @@ function render() {
   const totalOrang = list.reduce((sum, t) => sum + (t.jumlah || 0), 0);
   summary.textContent = `${list.length} baris tamu - ${totalOrang} orang`;
 
+  renderGroupSuggestions(list);
   renderRows(bodyList, list, false);
   renderRows(bodyDihapus, dihapus, true);
+}
+
+function renderGroupSuggestions(list) {
+  const groups = [...new Set(list.map(t => t.group_tamu).filter(Boolean))];
+  groupSuggestions.innerHTML = groups.map(g => `<option value="${g.replace(/"/g, '&quot;')}"></option>`).join('');
+}
+
+// Kelompokkan baris berdasarkan group_tamu, urutan bucket = urutan kemunculan pertama.
+// Baris tanpa group_tamu dikumpulkan terpisah dan dirender terakhir tanpa judul section.
+function groupRows(rows) {
+  const buckets = new Map();
+  const noGroup = [];
+
+  for (const t of rows) {
+    const key = t.group_tamu && t.group_tamu.trim() ? t.group_tamu : null;
+    if (key == null) {
+      noGroup.push(t);
+      continue;
+    }
+    if (!buckets.has(key)) buckets.set(key, []);
+    buckets.get(key).push(t);
+  }
+
+  return { buckets, noGroup };
 }
 
 function renderRows(tbody, rows, isDihapus) {
@@ -51,35 +86,64 @@ function renderRows(tbody, rows, isDihapus) {
   if (rows.length === 0) {
     const tr = document.createElement('tr');
     tr.className = 'empty-row';
-    tr.innerHTML = `<td colspan="5">${isDihapus ? 'Belum ada tamu yang dihapus' : 'Belum ada tamu'}</td>`;
+    tr.innerHTML = `<td colspan="4">${isDihapus ? 'Belum ada tamu yang dihapus' : 'Belum ada tamu'}</td>`;
     tbody.appendChild(tr);
     return;
   }
 
-  for (const t of rows) {
-    const tr = document.createElement('tr');
+  const { buckets, noGroup } = groupRows(rows);
 
-    tr.appendChild(makeEditableCell(t, 'group_tamu', isDihapus));
-    tr.appendChild(makeEditableCell(t, 'nama', isDihapus));
-    tr.appendChild(makeEditableCell(t, 'kategori', isDihapus));
-    tr.appendChild(makeEditableCell(t, 'jumlah', isDihapus, 'number'));
+  for (const [groupName, groupItems] of buckets) {
+    const headerTr = document.createElement('tr');
+    headerTr.className = 'group-header';
+    const headerTd = document.createElement('td');
+    headerTd.colSpan = 4;
+    headerTd.textContent = groupName;
+    headerTr.appendChild(headerTd);
+    tbody.appendChild(headerTr);
 
-    const actionTd = document.createElement('td');
-    const btn = document.createElement('button');
-    if (isDihapus) {
-      btn.className = 'btn-pulihkan';
-      btn.textContent = 'Pulihkan';
-      btn.addEventListener('click', () => restoreTamu(t.id));
-    } else {
-      btn.className = 'btn-hapus';
-      btn.textContent = 'Hapus';
-      btn.addEventListener('click', () => deleteTamu(t.id, t.nama));
+    for (const t of groupItems) {
+      tbody.appendChild(makeGuestRow(t, isDihapus));
     }
-    actionTd.appendChild(btn);
-    tr.appendChild(actionTd);
-
-    tbody.appendChild(tr);
   }
+
+  for (const t of noGroup) {
+    tbody.appendChild(makeGuestRow(t, isDihapus));
+  }
+}
+
+function makeGuestRow(t, isDihapus) {
+  const tr = document.createElement('tr');
+
+  tr.appendChild(makeEditableCell(t, 'nama', isDihapus));
+  tr.appendChild(makeEditableCell(t, 'kategori', isDihapus, 'select'));
+  tr.appendChild(makeEditableCell(t, 'jumlah', isDihapus, 'number'));
+
+  const actionTd = document.createElement('td');
+  actionTd.className = 'action-cell';
+
+  if (isDihapus) {
+    const btnRestore = document.createElement('button');
+    btnRestore.className = 'btn-pulihkan';
+    btnRestore.textContent = 'Pulihkan';
+    btnRestore.addEventListener('click', () => restoreTamu(t.id));
+    actionTd.appendChild(btnRestore);
+
+    const btnPermanent = document.createElement('button');
+    btnPermanent.className = 'btn-hapus-permanen';
+    btnPermanent.textContent = 'Hapus Permanen';
+    btnPermanent.addEventListener('click', () => deletePermanent(t.id, t.nama));
+    actionTd.appendChild(btnPermanent);
+  } else {
+    const btnHapus = document.createElement('button');
+    btnHapus.className = 'btn-hapus';
+    btnHapus.textContent = 'Hapus';
+    btnHapus.addEventListener('click', () => deleteTamu(t.id, t.nama));
+    actionTd.appendChild(btnHapus);
+  }
+
+  tr.appendChild(actionTd);
+  return tr;
 }
 
 function makeEditableCell(row, field, isDihapus, inputType) {
@@ -97,18 +161,31 @@ function makeEditableCell(row, field, isDihapus, inputType) {
 }
 
 function startEdit(td, row, field, inputType) {
-  if (td.querySelector('input')) return;
+  if (td.querySelector('input, select')) return;
 
   const currentValue = row[field] == null ? '' : row[field];
-  const input = document.createElement('input');
-  input.type = inputType === 'number' ? 'number' : 'text';
-  input.value = currentValue;
-  if (inputType === 'number') input.min = '1';
+  let input;
+
+  if (inputType === 'select') {
+    input = document.createElement('select');
+    for (const opt of KATEGORI_OPTIONS) {
+      const optionEl = document.createElement('option');
+      optionEl.value = opt;
+      optionEl.textContent = opt;
+      if (opt === currentValue) optionEl.selected = true;
+      input.appendChild(optionEl);
+    }
+  } else {
+    input = document.createElement('input');
+    input.type = inputType === 'number' ? 'number' : 'text';
+    input.value = currentValue;
+    if (inputType === 'number') input.min = '1';
+  }
 
   td.textContent = '';
   td.appendChild(input);
   input.focus();
-  input.select();
+  if (inputType !== 'select') input.select();
 
   const finish = () => saveEdit(td, row, field, input, inputType);
   input.addEventListener('blur', finish);
@@ -118,6 +195,9 @@ function startEdit(td, row, field, inputType) {
       td.textContent = currentValue;
     }
   });
+  if (inputType === 'select') {
+    input.addEventListener('change', finish);
+  }
 }
 
 async function saveEdit(td, row, field, input, inputType) {
@@ -154,7 +234,7 @@ document.getElementById('btn-tambah').addEventListener('click', addTamu);
 async function addTamu() {
   const group = document.getElementById('add-group').value.trim();
   const nama = document.getElementById('add-nama').value.trim();
-  const kategori = document.getElementById('add-kategori').value.trim();
+  const kategori = document.getElementById('add-kategori').value;
   const jumlah = parseInt(document.getElementById('add-jumlah').value, 10) || 1;
 
   if (!nama) {
@@ -200,6 +280,17 @@ async function restoreTamu(id) {
     .eq('id', id);
 
   if (error) alert('Gagal memulihkan: ' + error.message);
+}
+
+async function deletePermanent(id, nama) {
+  if (!confirm(`Hapus permanen "${nama}"? Data ini TIDAK BISA dikembalikan lagi.`)) return;
+
+  const { error } = await supabaseClient
+    .from('tamu')
+    .delete()
+    .eq('id', id);
+
+  if (error) alert('Gagal menghapus permanen: ' + error.message);
 }
 
 // ---- Tab switching ----

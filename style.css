@@ -2,29 +2,44 @@
   box-sizing: border-box;
 }
 
+html, body {
+  height: 100%;
+}
+
 body {
   margin: 0;
-  padding: 16px;
+  padding: 0;
   font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   background: #f5f5f5;
   color: #222;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .container {
   max-width: 900px;
   margin: 0 auto;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 12px 0 12px;
 }
 
 h1 {
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   text-align: center;
-  margin-bottom: 12px;
+  margin: 4px 0 12px 0;
+  flex-shrink: 0;
 }
 
 .tabs {
   display: flex;
   gap: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
+  flex-shrink: 0;
 }
 
 .tab-btn {
@@ -45,39 +60,52 @@ h1 {
 
 .summary {
   text-align: center;
-  margin-bottom: 12px;
-  font-size: 0.95rem;
+  margin-bottom: 10px;
+  font-size: 0.9rem;
   color: #555;
+  flex-shrink: 0;
 }
 
 .panel {
   display: none;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
   background: #fff;
-  border-radius: 8px;
-  overflow-x: auto;
+  border-radius: 8px 8px 0 0;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  overflow: hidden;
 }
 
 .panel.active {
-  display: block;
+  display: flex;
+}
+
+.table-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 600px;
 }
 
 th, td {
-  padding: 10px;
+  padding: 10px 8px;
   border-bottom: 1px solid #eee;
   text-align: left;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
 }
 
-th {
+thead th {
+  position: sticky;
+  top: 0;
   background: #fafafa;
   white-space: nowrap;
+  z-index: 1;
+  border-bottom: 1px solid #ddd;
 }
 
 td.editable {
@@ -85,23 +113,45 @@ td.editable {
 }
 
 td.editable:hover {
-  background: #f0f7f3;
+  background: rgba(47, 111, 79, 0.08);
 }
 
-td input {
+td input, td select {
   width: 100%;
   padding: 6px;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   border: 1px solid #2f6f4f;
   border-radius: 4px;
 }
 
+/* Baris judul section per grup - jadi penanda batas antar grup */
+.group-header td {
+  font-weight: bold;
+  padding: 8px;
+  font-size: 0.85rem;
+  background: #2f6f4f;
+  color: #fff;
+}
+
+/* Kolom Nama sedikit lebih lebar, Jumlah & Aksi sekecil mungkin */
+td:nth-child(1), th:nth-child(1) {
+  width: 46%;
+}
+td:nth-child(3), th:nth-child(3) {
+  width: 60px;
+}
+td:nth-child(4), th:nth-child(4) {
+  width: 1%;
+  white-space: nowrap;
+}
+
 button {
-  padding: 8px 12px;
-  font-size: 0.9rem;
+  padding: 7px 10px;
+  font-size: 0.82rem;
   border: none;
   border-radius: 6px;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .btn-hapus {
@@ -109,23 +159,75 @@ button {
   color: #fff;
 }
 
+.action-cell {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
 .btn-pulihkan {
   background: #2f6f4f;
   color: #fff;
 }
 
-.add-row input {
+.btn-hapus-permanen {
+  background: #7a1f1a;
+  color: #fff;
+}
+
+.add-bar {
+  flex-shrink: 0;
+  border-top: 1px solid #ddd;
+  padding: 10px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.add-bar input#add-nama {
   width: 100%;
-  padding: 8px;
+  padding: 10px;
   font-size: 0.95rem;
   border: 1px solid #ccc;
   border-radius: 6px;
 }
 
+.add-bar-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.add-bar-row input,
+.add-bar-row select {
+  padding: 8px;
+  font-size: 0.9rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.add-bar-row input#add-group {
+  flex: 1 1 120px;
+  min-width: 0;
+}
+
+.add-bar-row select#add-kategori {
+  flex: 1 1 110px;
+  min-width: 0;
+}
+
+.add-bar-row input#add-jumlah {
+  flex: 0 1 60px;
+  min-width: 0;
+}
+
 #btn-tambah {
+  flex: 1 1 100%;
   background: #2f6f4f;
   color: #fff;
-  white-space: nowrap;
+  padding: 10px;
+  font-size: 0.95rem;
 }
 
 .empty-row td {
@@ -136,10 +238,14 @@ button {
 
 @media (max-width: 600px) {
   h1 {
-    font-size: 1.2rem;
+    font-size: 1.15rem;
   }
   th, td {
     padding: 8px 6px;
-    font-size: 0.85rem;
+    font-size: 0.82rem;
+  }
+  button {
+    padding: 6px 8px;
+    font-size: 0.78rem;
   }
 }

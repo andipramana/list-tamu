@@ -19,42 +19,53 @@
   <div id="summary" class="summary"></div>
 
   <div id="panel-list" class="panel active">
-    <table>
-      <thead>
-        <tr>
-          <th>Group Tamu</th>
-          <th>Nama</th>
-          <th>Kategori Tamu</th>
-          <th>Jumlah Orang</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody id="body-list"></tbody>
-      <tfoot>
-        <tr class="add-row">
-          <td><input type="text" id="add-group" placeholder="Group Tamu" /></td>
-          <td><input type="text" id="add-nama" placeholder="Nama" /></td>
-          <td><input type="text" id="add-kategori" placeholder="Kategori Tamu" /></td>
-          <td><input type="number" id="add-jumlah" placeholder="1" min="1" value="1" /></td>
-          <td><button id="btn-tambah">Tambah Tamu</button></td>
-        </tr>
-      </tfoot>
-    </table>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Nama</th>
+            <th>Kategori</th>
+            <th>Jumlah</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="body-list"></tbody>
+      </table>
+    </div>
+    <div class="add-bar">
+      <input type="text" id="add-nama" placeholder="Nama tamu" />
+      <div class="add-bar-row">
+        <input type="text" id="add-group" list="group-suggestions" placeholder="Group Tamu (opsional)" />
+        <datalist id="group-suggestions"></datalist>
+        <select id="add-kategori">
+          <option value="" disabled selected>Kategori</option>
+          <option value="Keluarga Inti">Keluarga Inti</option>
+          <option value="Keluarga Ema Cucun">Keluarga Ema Cucun</option>
+          <option value="Keluarga Nini">Keluarga Nini</option>
+          <option value="Teman Iyow">Teman Iyow</option>
+          <option value="Teman Mamah Bapa">Teman Mamah Bapa</option>
+          <option value="Lainnya">Lainnya</option>
+        </select>
+        <input type="number" id="add-jumlah" placeholder="1" min="1" value="1" />
+        <button id="btn-tambah">Tambah Tamu</button>
+      </div>
+    </div>
   </div>
 
   <div id="panel-dihapus" class="panel">
-    <table>
-      <thead>
-        <tr>
-          <th>Group Tamu</th>
-          <th>Nama</th>
-          <th>Kategori Tamu</th>
-          <th>Jumlah Orang</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody id="body-dihapus"></tbody>
-    </table>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Nama</th>
+            <th>Kategori</th>
+            <th>Jumlah</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="body-dihapus"></tbody>
+      </table>
+    </div>
   </div>
 </div>
 
