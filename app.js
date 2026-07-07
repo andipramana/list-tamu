@@ -102,6 +102,10 @@ function renderRows(tbody, rows, isDihapus) {
     const headerTd = document.createElement('td');
     headerTd.colSpan = 4;
     headerTd.textContent = groupName;
+    if (!isDihapus) {
+      headerTd.classList.add('editable-group');
+      headerTd.addEventListener('click', () => startGroupEdit(headerTd, groupName));
+    }
     headerTr.appendChild(headerTd);
     tbody.appendChild(headerTr);
 
@@ -147,6 +151,46 @@ function makeGuestRow(t, isDihapus) {
 
   tr.appendChild(actionTd);
   return tr;
+}
+
+function startGroupEdit(td, oldGroupName) {
+  if (td.querySelector('input')) return;
+
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.value = oldGroupName;
+
+  td.textContent = '';
+  td.appendChild(input);
+  input.focus();
+  input.select();
+
+  const finish = async () => {
+    const newValue = input.value.trim();
+    if (!newValue || newValue === oldGroupName) {
+      td.textContent = oldGroupName;
+      return;
+    }
+
+    const { error } = await supabaseClient
+      .from('tamu')
+      .update({ group_tamu: newValue })
+      .eq('group_tamu', oldGroupName);
+
+    if (error) {
+      alert('Gagal mengubah nama grup: ' + error.message);
+      td.textContent = oldGroupName;
+      return;
+    }
+
+    td.textContent = newValue;
+  };
+
+  input.addEventListener('blur', finish);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') input.blur();
+    if (e.key === 'Escape') td.textContent = oldGroupName;
+  });
 }
 
 function makeEditableCell(row, field, isDihapus, inputType) {
