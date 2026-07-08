@@ -37,6 +37,7 @@ const groupSuggestions = document.getElementById('group-suggestions');
 const fabTambah = document.getElementById('fab-tambah');
 
 const MOVE_ICON_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l-4 4"/><path d="M12 3l4 4"/><path d="M12 21l-4-4"/><path d="M12 21l4-4"/><path d="M12 3v18"/></svg>';
+const PLUS_ICON_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>';
 
 // ---- Modal alert/confirm (pengganti alert()/confirm() bawaan browser) ----
 
@@ -169,6 +170,17 @@ function renderRows(tbody, rows, isDihapus) {
     if (!isDihapus) {
       nameSpan.classList.add('editable-group');
       nameSpan.addEventListener('click', () => startGroupEdit(nameSpan, groupName));
+
+      const btnAddToGroup = document.createElement('button');
+      btnAddToGroup.className = 'btn-move';
+      btnAddToGroup.innerHTML = PLUS_ICON_SVG;
+      btnAddToGroup.title = `Tambah tamu ke grup ${groupName}`;
+      btnAddToGroup.setAttribute('aria-label', `Tambah tamu ke grup ${groupName}`);
+      btnAddToGroup.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openModal(groupName);
+      });
+      headerInner.appendChild(btnAddToGroup);
 
       const btnMove = document.createElement('button');
       btnMove.className = 'btn-move';
@@ -430,8 +442,11 @@ async function saveEdit(td, row, field, input, inputType) {
 
 const modalTambah = document.getElementById('modal-tambah');
 
-function openModal() {
+function openModal(prefillGroup) {
   modalTambah.classList.remove('hidden');
+  if (prefillGroup) {
+    document.getElementById('add-group').value = prefillGroup;
+  }
   document.getElementById('add-nama').focus();
 }
 
@@ -442,7 +457,7 @@ function closeModal() {
   document.getElementById('add-jumlah').value = '1';
 }
 
-fabTambah.addEventListener('click', openModal);
+fabTambah.addEventListener('click', () => openModal());
 document.getElementById('btn-batal').addEventListener('click', closeModal);
 modalTambah.addEventListener('click', (e) => {
   if (e.target === modalTambah) closeModal();
