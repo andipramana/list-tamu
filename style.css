@@ -178,17 +178,23 @@ td input {
   border-radius: 4px;
 }
 
-/* Baris judul section per grup - label netral, bukan tombol, jadi sengaja tidak mencolok */
+/* Baris judul section per grup - label netral, bukan tombol, jadi sengaja tidak mencolok.
+   display:flex sengaja dipasang di DIV di dalam td, bukan di td itu sendiri - kalau
+   dipasang langsung di <td>, sebagian browser jadi salah hitung lebar colspan-nya
+   (td jadi menyusut ke lebar kontennya, bukan lebar penuh gabungan 3 kolom). */
 .group-header td {
+  padding: 6px 6px;
+  font-size: 0.8rem;
+  background: var(--color-group-bg);
+  color: var(--color-group-text);
+}
+
+.group-header-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
   font-weight: bold;
-  padding: 6px 6px;
-  font-size: 0.8rem;
-  background: var(--color-group-bg);
-  color: var(--color-group-text);
 }
 
 .group-name {

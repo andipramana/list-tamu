@@ -138,10 +138,14 @@ function renderRows(tbody, rows, isDihapus) {
     const headerTd = document.createElement('td');
     headerTd.colSpan = 3;
 
+    const headerInner = document.createElement('div');
+    headerInner.className = 'group-header-inner';
+    headerTd.appendChild(headerInner);
+
     const nameSpan = document.createElement('span');
     nameSpan.className = 'group-name';
     nameSpan.textContent = groupName;
-    headerTd.appendChild(nameSpan);
+    headerInner.appendChild(nameSpan);
 
     if (!isDihapus) {
       nameSpan.classList.add('editable-group');
@@ -156,7 +160,7 @@ function renderRows(tbody, rows, isDihapus) {
         e.stopPropagation();
         openMoveModal(groupName);
       });
-      headerTd.appendChild(btnMove);
+      headerInner.appendChild(btnMove);
     }
 
     headerTr.appendChild(headerTd);
