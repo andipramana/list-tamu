@@ -162,14 +162,16 @@ function renderRows(tbody, rows, isDihapus) {
     headerInner.className = 'group-header-inner';
     headerTd.appendChild(headerInner);
 
+    const groupTotal = groupItems.reduce((sum, t) => sum + (t.jumlah || 0), 0);
+
     const nameSpan = document.createElement('span');
     nameSpan.className = 'group-name';
-    nameSpan.textContent = groupName;
+    nameSpan.textContent = `${groupName} (${groupTotal})`;
     headerInner.appendChild(nameSpan);
 
     if (!isDihapus) {
       nameSpan.classList.add('editable-group');
-      nameSpan.addEventListener('click', () => startGroupEdit(nameSpan, groupName));
+      nameSpan.addEventListener('click', () => startGroupEdit(nameSpan, groupName, groupTotal));
 
       const btnAddToGroup = document.createElement('button');
       btnAddToGroup.className = 'btn-move';
@@ -333,8 +335,10 @@ async function moveGroupTo(groupName, direction, targetGroupName) {
   }
 }
 
-function startGroupEdit(td, oldGroupName) {
+function startGroupEdit(td, oldGroupName, groupTotal) {
   if (td.querySelector('input')) return;
+
+  const labelWithTotal = (name) => `${name} (${groupTotal})`;
 
   const input = document.createElement('input');
   input.type = 'text';
@@ -348,7 +352,7 @@ function startGroupEdit(td, oldGroupName) {
   const finish = async () => {
     const newValue = input.value.trim();
     if (!newValue || newValue === oldGroupName) {
-      td.textContent = oldGroupName;
+      td.textContent = labelWithTotal(oldGroupName);
       return;
     }
 
@@ -359,17 +363,17 @@ function startGroupEdit(td, oldGroupName) {
 
     if (error) {
       await showAlert('Gagal mengubah nama grup: ' + error.message);
-      td.textContent = oldGroupName;
+      td.textContent = labelWithTotal(oldGroupName);
       return;
     }
 
-    td.textContent = newValue;
+    td.textContent = labelWithTotal(newValue);
   };
 
   input.addEventListener('blur', finish);
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') input.blur();
-    if (e.key === 'Escape') td.textContent = oldGroupName;
+    if (e.key === 'Escape') td.textContent = labelWithTotal(oldGroupName);
   });
 }
 
