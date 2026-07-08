@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>List Tamu - Andi & Mita</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="container">
+  <h1>List Tamu</h1>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="list">List (<span id="count-list">0</span>)</button>
+    <button class="tab-btn" data-tab="dihapus">Dihapus (<span id="count-dihapus">0</span>)</button>
+  </div>
+
+  <div class="stats">
+    <div class="stat-tile">
+      <div class="stat-value" id="stat-tamu">0</div>
+      <div class="stat-label">Baris Tamu</div>
+    </div>
+    <div class="stat-tile">
+      <div class="stat-value" id="stat-orang">0</div>
+      <div class="stat-label">Total Orang</div>
+    </div>
+  </div>
+
+  <div id="panel-list" class="panel active">
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Nama</th>
+            <th>Jml</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="body-list"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="panel-dihapus" class="panel">
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Nama</th>
+            <th>Jml</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="body-dihapus"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<button id="fab-tambah" class="fab" aria-label="Tambah Tamu">+</button>
+
+<div id="modal-tambah" class="modal-overlay hidden">
+  <div class="modal-card">
+    <h2>Tambah Tamu</h2>
+    <input type="text" id="add-nama" placeholder="Nama tamu" />
+    <input type="text" id="add-group" list="group-suggestions" placeholder="Group Tamu (opsional)" />
+    <datalist id="group-suggestions"></datalist>
+    <input type="number" id="add-jumlah" placeholder="Jumlah orang" min="1" value="1" />
+    <div class="modal-actions">
+      <button id="btn-batal" class="btn-secondary">Batal</button>
+      <button id="btn-tambah" class="btn-primary">Tambah Tamu</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-confirm" class="modal-overlay hidden">
+  <div class="modal-card">
+    <p id="confirm-message"></p>
+    <div class="modal-actions">
+      <button id="confirm-cancel" class="btn-secondary">Batal</button>
+      <button id="confirm-ok" class="btn-primary">Ya</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-move" class="modal-overlay hidden">
+  <div class="modal-card">
+    <h2>Pindah Grup</h2>
+    <p class="move-group-name">Pindahkan grup "<span id="move-group-label"></span>"</p>
+    <div class="move-form-row">
+      <select id="move-direction">
+        <option value="before">ke atas</option>
+        <option value="after">ke bawah</option>
+      </select>
+      <span>dari</span>
+      <select id="move-target"></select>
+    </div>
+    <div class="modal-actions">
+      <button id="move-batal" class="btn-secondary">Batal</button>
+      <button id="move-submit" class="btn-primary">Pindah</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="app.js"></script>
+</body>
+</html>

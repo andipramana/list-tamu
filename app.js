@@ -7,6 +7,24 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// ---- Pihak (siapa yang punya tamu) - dideteksi dari nama file HTML-nya sendiri ----
+// index.html -> "andi" (default), mita.html -> "mita", dst. Copy file ini dengan nama
+// lain (mis. budi.html) untuk otomatis dapat list tamu terpisah tanpa edit kode apa pun.
+function getPihakFromFilename() {
+  const path = window.location.pathname;
+  const filename = path.substring(path.lastIndexOf('/') + 1).replace(/\.html?$/i, '');
+  return (!filename || filename.toLowerCase() === 'index') ? 'andi' : filename.toLowerCase();
+}
+
+const PIHAK = getPihakFromFilename();
+
+function capitalize(s) {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+document.title = `Tamu ${capitalize(PIHAK)} - Andi & Mita`;
+document.querySelector('h1').textContent = `Tamu ${capitalize(PIHAK)}`;
+
 let allTamu = [];
 
 const bodyList = document.getElementById('body-list');
@@ -63,6 +81,7 @@ async function fetchTamu() {
   const { data, error } = await supabaseClient
     .from('tamu')
     .select('*')
+    .eq('pihak', PIHAK)
     .order('id', { ascending: true });
 
   if (error) {
@@ -457,6 +476,7 @@ async function addTamu() {
     nama,
     jumlah,
     group_order: groupOrder,
+    pihak: PIHAK,
   });
 
   if (error) {
@@ -525,8 +545,8 @@ function scheduleFetch() {
 }
 
 supabaseClient
-  .channel('tamu-changes')
-  .on('postgres_changes', { event: '*', schema: 'public', table: 'tamu' }, () => {
+  .channel(`tamu-changes-${PIHAK}`)
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'tamu', filter: `pihak=eq.${PIHAK}` }, () => {
     scheduleFetch();
   })
   .subscribe();
