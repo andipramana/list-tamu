@@ -519,7 +519,13 @@ async function deletePermanent(id, nama) {
     .delete()
     .eq('id', id);
 
-  if (error) await showAlert('Gagal menghapus permanen: ' + error.message);
+  if (error) {
+    await showAlert('Gagal menghapus permanen: ' + error.message);
+    return;
+  }
+
+  // Jangan cuma andalkan realtime di sini - langsung refresh di sisi yang mengklik.
+  await fetchTamu();
 }
 
 // ---- Tab switching ----
