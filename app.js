@@ -543,6 +543,56 @@ async function deletePermanent(id, nama) {
   await fetchTamu();
 }
 
+// ---- Export CSV ----
+
+function csvEscape(value) {
+  const str = String(value ?? '');
+  if (/["\n,]/.test(str)) {
+    return '"' + str.replace(/"/g, '""') + '"';
+  }
+  return str;
+}
+
+function buildCsv() {
+  const isDihapusActive = document.getElementById('panel-dihapus').classList.contains('active');
+  const rows = allTamu.filter(t => t.is_deleted === isDihapusActive);
+  const { sortedGroups, noGroup } = groupRows(rows);
+
+  const lines = [['Group Tamu', 'Nama', 'Jumlah'].join(',')];
+  for (const [groupName, items] of sortedGroups) {
+    for (const t of items) {
+      lines.push([groupName, t.nama, t.jumlah].map(csvEscape).join(','));
+    }
+  }
+  for (const t of noGroup) {
+    lines.push(['', t.nama, t.jumlah].map(csvEscape).join(','));
+  }
+  return lines.join('\n');
+}
+
+const BOM = '﻿'; // supaya Excel/Sheets baca file CSV-nya sebagai UTF-8, bukan tersalah-baca karakternya
+
+function downloadCsv(csv) {
+  const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `tamu-${PIHAK}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+document.getElementById('btn-export').addEventListener('click', async () => {
+  const csv = buildCsv();
+  try {
+    await navigator.clipboard.writeText(csv);
+    await showAlert('Data berhasil disalin. Tinggal paste (Ctrl+V) ke Google Sheets.');
+  } catch (e) {
+    downloadCsv(csv);
+    await showAlert('Tidak bisa menyalin otomatis, file CSV sudah diunduh sebagai gantinya.');
+  }
+});
+
 // ---- Tab switching ----
 
 document.querySelectorAll('.tab-btn').forEach(btn => {
