@@ -415,6 +415,13 @@ function startEdit(td, row, field, inputType) {
   });
 }
 
+// Nama harus unik (case-insensitive) di antara tamu yang masih aktif di pihak yang sama.
+// Tamu di pihak lain (mis. andi vs mita) atau yang sudah di-soft-delete tidak dihitung.
+function isNameDuplicate(nama, excludeId) {
+  const key = nama.trim().toLowerCase();
+  return allTamu.some(t => !t.is_deleted && t.id !== excludeId && t.nama.trim().toLowerCase() === key);
+}
+
 async function saveEdit(td, row, field, input, inputType) {
   let newValue = input.value.trim();
   if (inputType === 'number') {
@@ -423,6 +430,12 @@ async function saveEdit(td, row, field, input, inputType) {
 
   const oldValue = row[field] == null ? '' : row[field];
   if (newValue === oldValue || (inputType !== 'number' && newValue === '' && oldValue === '')) {
+    td.textContent = oldValue;
+    return;
+  }
+
+  if (field === 'nama' && isNameDuplicate(newValue, row.id)) {
+    await showAlert(`Nama "${newValue}" sudah ada di list. Nama tamu harus unik.`);
     td.textContent = oldValue;
     return;
   }
@@ -476,6 +489,11 @@ async function addTamu() {
 
   if (!nama) {
     await showAlert('Nama tamu wajib diisi');
+    return;
+  }
+
+  if (isNameDuplicate(nama, null)) {
+    await showAlert(`Nama "${nama}" sudah ada di list. Nama tamu harus unik.`);
     return;
   }
 
