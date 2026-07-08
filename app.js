@@ -255,25 +255,46 @@ async function moveGroupTo(groupName, direction, targetGroupName) {
   const list = allTamu.filter(t => !t.is_deleted);
   const { sortedGroups } = groupRows(list);
 
-  const orderedNames = sortedGroups.map(([name]) => name);
-  const fromIndex = orderedNames.indexOf(groupName);
-  if (fromIndex === -1) return;
-  orderedNames.splice(fromIndex, 1);
-
-  const targetIndex = orderedNames.indexOf(targetGroupName);
+  const withoutMoved = sortedGroups.filter(([name]) => name !== groupName);
+  const targetIndex = withoutMoved.findIndex(([name]) => name === targetGroupName);
   if (targetIndex === -1) return;
-  const insertIndex = direction === 'before' ? targetIndex : targetIndex + 1;
-  orderedNames.splice(insertIndex, 0, groupName);
 
-  const results = await Promise.all(
-    orderedNames.map((name, i) =>
-      supabaseClient.from('tamu').update({ group_order: (i + 1) * 10 }).eq('group_tamu', name)
-    )
-  );
+  const targetOrder = withoutMoved[targetIndex][1][0].group_order;
+  let newOrder;
 
-  const failed = results.find(r => r.error);
-  if (failed) {
-    await showAlert('Gagal memindahkan grup: ' + failed.error.message);
+  if (direction === 'before') {
+    const prevOrder = targetIndex > 0 ? withoutMoved[targetIndex - 1][1][0].group_order : null;
+    newOrder = prevOrder == null ? targetOrder - 10 : Math.floor((prevOrder + targetOrder) / 2);
+    if (newOrder === targetOrder || newOrder === prevOrder) newOrder = null;
+  } else {
+    const nextOrder = targetIndex < withoutMoved.length - 1 ? withoutMoved[targetIndex + 1][1][0].group_order : null;
+    newOrder = nextOrder == null ? targetOrder + 10 : Math.floor((targetOrder + nextOrder) / 2);
+    if (newOrder === targetOrder || newOrder === nextOrder) newOrder = null;
+  }
+
+  // Tidak ada celah angka tersisa di antara dua grup tetangga - renumber ulang semua grup sebagai fallback.
+  if (newOrder == null) {
+    const orderedNames = withoutMoved.map(([name]) => name);
+    const insertIndex = direction === 'before' ? targetIndex : targetIndex + 1;
+    orderedNames.splice(insertIndex, 0, groupName);
+
+    const results = await Promise.all(
+      orderedNames.map((name, i) =>
+        supabaseClient.from('tamu').update({ group_order: (i + 1) * 10 }).eq('group_tamu', name)
+      )
+    );
+    const failed = results.find(r => r.error);
+    if (failed) await showAlert('Gagal memindahkan grup: ' + failed.error.message);
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from('tamu')
+    .update({ group_order: newOrder })
+    .eq('group_tamu', groupName);
+
+  if (error) {
+    await showAlert('Gagal memindahkan grup: ' + error.message);
   }
 }
 
@@ -490,11 +511,19 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 });
 
 // ---- Realtime sync ----
+// Di-debounce supaya perubahan yang memicu banyak event sekaligus (mis. pindah grup)
+// cuma menyebabkan satu kali fetch ulang, bukan fetch bertubi-tubi yang bikin lambat.
+
+let fetchDebounceTimer = null;
+function scheduleFetch() {
+  clearTimeout(fetchDebounceTimer);
+  fetchDebounceTimer = setTimeout(fetchTamu, 200);
+}
 
 supabaseClient
   .channel('tamu-changes')
   .on('postgres_changes', { event: '*', schema: 'public', table: 'tamu' }, () => {
-    fetchTamu();
+    scheduleFetch();
   })
   .subscribe();
 
