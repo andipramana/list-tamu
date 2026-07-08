@@ -18,6 +18,8 @@ const statOrang = document.getElementById('stat-orang');
 const groupSuggestions = document.getElementById('group-suggestions');
 const fabTambah = document.getElementById('fab-tambah');
 
+const MOVE_ICON_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l-4 4"/><path d="M12 3l4 4"/><path d="M12 21l-4-4"/><path d="M12 21l4-4"/><path d="M12 3v18"/></svg>';
+
 // ---- Modal alert/confirm (pengganti alert()/confirm() bawaan browser) ----
 
 const modalConfirm = document.getElementById('modal-confirm');
@@ -92,7 +94,7 @@ function renderGroupSuggestions(list) {
   groupSuggestions.innerHTML = groups.map(g => `<option value="${g.replace(/"/g, '&quot;')}"></option>`).join('');
 }
 
-// Kelompokkan baris berdasarkan group_tamu, urutan bucket = urutan kemunculan pertama.
+// Kelompokkan baris berdasarkan group_tamu, urutan grup mengikuti group_order (bisa digeser manual).
 // Baris tanpa group_tamu dikumpulkan terpisah dan dirender terakhir tanpa judul section.
 function groupRows(rows) {
   const buckets = new Map();
@@ -108,7 +110,13 @@ function groupRows(rows) {
     buckets.get(key).push(t);
   }
 
-  return { buckets, noGroup };
+  const sortedGroups = [...buckets.entries()].sort((a, b) => {
+    const orderA = a[1][0].group_order ?? Number.MAX_SAFE_INTEGER;
+    const orderB = b[1][0].group_order ?? Number.MAX_SAFE_INTEGER;
+    return orderA - orderB;
+  });
+
+  return { sortedGroups, noGroup };
 }
 
 function renderRows(tbody, rows, isDihapus) {
@@ -122,25 +130,54 @@ function renderRows(tbody, rows, isDihapus) {
     return;
   }
 
-  const { buckets, noGroup } = groupRows(rows);
+  const { sortedGroups, noGroup } = groupRows(rows);
 
-  for (const [groupName, groupItems] of buckets) {
+  sortedGroups.forEach(([groupName, groupItems], index) => {
     const headerTr = document.createElement('tr');
     headerTr.className = 'group-header';
     const headerTd = document.createElement('td');
     headerTd.colSpan = 3;
-    headerTd.textContent = groupName;
+
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'group-name';
+    nameSpan.textContent = groupName;
+    headerTd.appendChild(nameSpan);
+
     if (!isDihapus) {
-      headerTd.classList.add('editable-group');
-      headerTd.addEventListener('click', () => startGroupEdit(headerTd, groupName));
+      nameSpan.classList.add('editable-group');
+      nameSpan.addEventListener('click', () => startGroupEdit(nameSpan, groupName));
+
+      const moveWrap = document.createElement('span');
+      moveWrap.className = 'group-move';
+
+      const btnUp = document.createElement('button');
+      btnUp.className = 'btn-move';
+      btnUp.innerHTML = MOVE_ICON_SVG;
+      btnUp.title = 'Naikkan grup';
+      btnUp.setAttribute('aria-label', 'Naikkan grup');
+      btnUp.disabled = index === 0;
+      btnUp.addEventListener('click', () => moveGroup(groupName, 'up'));
+      moveWrap.appendChild(btnUp);
+
+      const btnDown = document.createElement('button');
+      btnDown.className = 'btn-move';
+      btnDown.innerHTML = MOVE_ICON_SVG;
+      btnDown.title = 'Turunkan grup';
+      btnDown.setAttribute('aria-label', 'Turunkan grup');
+      btnDown.disabled = index === sortedGroups.length - 1;
+      btnDown.addEventListener('click', () => moveGroup(groupName, 'down'));
+      moveWrap.appendChild(btnDown);
+
+      headerTd.appendChild(moveWrap);
     }
+
     headerTr.appendChild(headerTd);
     tbody.appendChild(headerTr);
 
     for (const t of groupItems) {
       tbody.appendChild(makeGuestRow(t, isDihapus));
     }
-  }
+  });
 
   for (const t of noGroup) {
     tbody.appendChild(makeGuestRow(t, isDihapus));
@@ -178,6 +215,39 @@ function makeGuestRow(t, isDihapus) {
 
   tr.appendChild(actionTd);
   return tr;
+}
+
+async function moveGroup(groupName, direction) {
+  const list = allTamu.filter(t => !t.is_deleted);
+  const { sortedGroups } = groupRows(list);
+  const index = sortedGroups.findIndex(([name]) => name === groupName);
+  if (index === -1) return;
+
+  const neighborIndex = direction === 'up' ? index - 1 : index + 1;
+  if (neighborIndex < 0 || neighborIndex >= sortedGroups.length) return;
+
+  const currentOrder = sortedGroups[index][1][0].group_order;
+  const [neighborName, neighborItems] = sortedGroups[neighborIndex];
+  const neighborOrder = neighborItems[0].group_order;
+
+  const { error: err1 } = await supabaseClient
+    .from('tamu')
+    .update({ group_order: neighborOrder })
+    .eq('group_tamu', groupName);
+
+  if (err1) {
+    await showAlert('Gagal memindahkan grup: ' + err1.message);
+    return;
+  }
+
+  const { error: err2 } = await supabaseClient
+    .from('tamu')
+    .update({ group_order: currentOrder })
+    .eq('group_tamu', neighborName);
+
+  if (err2) {
+    await showAlert('Gagal memindahkan grup: ' + err2.message);
+  }
 }
 
 function startGroupEdit(td, oldGroupName) {
@@ -319,10 +389,22 @@ async function addTamu() {
     return;
   }
 
+  let groupOrder = null;
+  if (group) {
+    const existingMember = allTamu.find(t => t.group_tamu === group);
+    if (existingMember) {
+      groupOrder = existingMember.group_order;
+    } else {
+      const maxOrder = allTamu.reduce((max, t) => (t.group_order != null && t.group_order > max ? t.group_order : max), 0);
+      groupOrder = maxOrder + 10;
+    }
+  }
+
   const { error } = await supabaseClient.from('tamu').insert({
     group_tamu: group || null,
     nama,
     jumlah,
+    group_order: groupOrder,
   });
 
   if (error) {

@@ -180,25 +180,59 @@ td input {
 
 /* Baris judul section per grup - label netral, bukan tombol, jadi sengaja tidak mencolok */
 .group-header td {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   font-weight: bold;
-  padding: 7px 6px;
+  padding: 6px 6px;
   font-size: 0.8rem;
   background: var(--color-group-bg);
   color: var(--color-group-text);
 }
 
-.group-header td.editable-group {
+.group-name {
+  flex: 1;
+  min-width: 0;
+}
+
+.group-name.editable-group {
   cursor: pointer;
 }
 
-.group-header td.editable-group:hover {
-  background: #e9dfc4;
+.group-name.editable-group:hover {
+  text-decoration: underline;
 }
 
-.group-header td input {
+.group-header input {
   border: 1px solid var(--color-primary);
   font-weight: bold;
   font-size: 0.8rem;
+  width: 100%;
+}
+
+.group-move {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.btn-move {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: var(--color-group-text);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 6px;
+}
+
+.btn-move:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
 /* Lebar kolom: Nama fleksibel, Jumlah & Aksi seminim mungkin */
