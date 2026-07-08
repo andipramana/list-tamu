@@ -84,9 +84,23 @@
   </div>
 </div>
 
-<div id="move-menu" class="move-menu hidden">
-  <button id="move-up-btn" class="move-menu-item">Pindah ke Atas</button>
-  <button id="move-down-btn" class="move-menu-item">Pindah ke Bawah</button>
+<div id="modal-move" class="modal-overlay hidden">
+  <div class="modal-card">
+    <h2>Pindah Grup</h2>
+    <p class="move-group-name">Pindahkan grup "<span id="move-group-label"></span>"</p>
+    <div class="move-form-row">
+      <select id="move-direction">
+        <option value="before">ke atas</option>
+        <option value="after">ke bawah</option>
+      </select>
+      <span>dari</span>
+      <select id="move-target"></select>
+    </div>
+    <div class="modal-actions">
+      <button id="move-batal" class="btn-secondary">Batal</button>
+      <button id="move-submit" class="btn-primary">Pindah</button>
+    </div>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

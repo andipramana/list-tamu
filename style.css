@@ -225,51 +225,42 @@ td input {
   border-radius: 6px;
 }
 
-.move-menu {
-  position: fixed;
-  z-index: 30;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
-  overflow: hidden;
+.move-group-name {
+  text-align: center;
+  font-size: 0.9rem;
+  color: #444;
+  margin: 0;
+}
+
+.move-form-row {
   display: flex;
-  flex-direction: column;
-  min-width: 160px;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
 }
 
-.move-menu.hidden {
-  display: none;
+.move-form-row select {
+  flex: 1;
+  min-width: 0;
+  padding: 10px;
+  font-size: 0.9rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
 }
 
-.move-menu-item {
-  background: #fff;
-  color: #222;
-  text-align: left;
-  padding: 10px 14px;
-  font-size: 0.85rem;
-  border-radius: 0;
-}
-
-.move-menu-item:hover:not(:disabled) {
-  background: #f0f0f0;
-}
-
-.move-menu-item:disabled {
-  color: #bbb;
-  cursor: not-allowed;
-}
-
-/* Lebar kolom: Nama fleksibel, Jumlah & Aksi seminim mungkin */
-th:nth-child(1), td:nth-child(1) {
+/* Lebar kolom: Nama fleksibel, Jumlah & Aksi seminim mungkin.
+   :not([colspan]) supaya tidak menimpa baris judul grup yang colspan-nya 3
+   (tanpa ini, baris judul grup jadi ikut menyempit ke lebar kolom Nama saja). */
+th:nth-child(1), td:not([colspan]):nth-child(1) {
   width: auto;
 }
-th:nth-child(2), td:nth-child(2) {
+th:nth-child(2), td:not([colspan]):nth-child(2) {
   width: 40px;
   text-align: center;
   padding-left: 2px;
   padding-right: 2px;
 }
-th:nth-child(3), td:nth-child(3) {
+th:nth-child(3), td:not([colspan]):nth-child(3) {
   width: 80px;
 }
 

@@ -154,7 +154,7 @@ function renderRows(tbody, rows, isDihapus) {
       btnMove.setAttribute('aria-label', 'Pindah grup');
       btnMove.addEventListener('click', (e) => {
         e.stopPropagation();
-        openMoveMenu(btnMove, groupName, index === 0, index === sortedGroups.length - 1);
+        openMoveModal(groupName);
       });
       headerTd.appendChild(btnMove);
     }
@@ -205,75 +205,75 @@ function makeGuestRow(t, isDihapus) {
   return tr;
 }
 
-// ---- Menu pindah grup (satu ikon, popover naik/turun) ----
+// ---- Modal pindah grup (pilih arah + grup acuan) ----
 
-const moveMenu = document.getElementById('move-menu');
-const moveUpBtn = document.getElementById('move-up-btn');
-const moveDownBtn = document.getElementById('move-down-btn');
+const modalMove = document.getElementById('modal-move');
+const moveGroupLabel = document.getElementById('move-group-label');
+const moveDirectionSelect = document.getElementById('move-direction');
+const moveTargetSelect = document.getElementById('move-target');
+let moveGroupContext = null;
 
-function openMoveMenu(anchorEl, groupName, isFirst, isLast) {
-  const rect = anchorEl.getBoundingClientRect();
-  moveMenu.style.top = `${rect.bottom + 4}px`;
-  moveMenu.style.right = `${window.innerWidth - rect.right}px`;
-  moveMenu.style.left = 'auto';
-  moveMenu.dataset.group = groupName;
-  moveUpBtn.disabled = isFirst;
-  moveDownBtn.disabled = isLast;
-  moveMenu.classList.remove('hidden');
-}
+function openMoveModal(groupName) {
+  moveGroupContext = groupName;
+  moveGroupLabel.textContent = groupName;
 
-function closeMoveMenu() {
-  moveMenu.classList.add('hidden');
-}
-
-moveUpBtn.addEventListener('click', () => {
-  const groupName = moveMenu.dataset.group;
-  closeMoveMenu();
-  moveGroup(groupName, 'up');
-});
-
-moveDownBtn.addEventListener('click', () => {
-  const groupName = moveMenu.dataset.group;
-  closeMoveMenu();
-  moveGroup(groupName, 'down');
-});
-
-document.addEventListener('click', (e) => {
-  if (!moveMenu.classList.contains('hidden') && !moveMenu.contains(e.target)) {
-    closeMoveMenu();
-  }
-});
-
-async function moveGroup(groupName, direction) {
   const list = allTamu.filter(t => !t.is_deleted);
   const { sortedGroups } = groupRows(list);
-  const index = sortedGroups.findIndex(([name]) => name === groupName);
-  if (index === -1) return;
+  const otherGroups = sortedGroups.map(([name]) => name).filter(name => name !== groupName);
 
-  const neighborIndex = direction === 'up' ? index - 1 : index + 1;
-  if (neighborIndex < 0 || neighborIndex >= sortedGroups.length) return;
+  moveTargetSelect.innerHTML = otherGroups
+    .map(name => `<option value="${name.replace(/"/g, '&quot;')}">${name}</option>`)
+    .join('');
+  moveDirectionSelect.value = 'before';
 
-  const currentOrder = sortedGroups[index][1][0].group_order;
-  const [neighborName, neighborItems] = sortedGroups[neighborIndex];
-  const neighborOrder = neighborItems[0].group_order;
+  modalMove.classList.remove('hidden');
+}
 
-  const { error: err1 } = await supabaseClient
-    .from('tamu')
-    .update({ group_order: neighborOrder })
-    .eq('group_tamu', groupName);
+function closeMoveModal() {
+  modalMove.classList.add('hidden');
+  moveGroupContext = null;
+}
 
-  if (err1) {
-    await showAlert('Gagal memindahkan grup: ' + err1.message);
+document.getElementById('move-batal').addEventListener('click', closeMoveModal);
+modalMove.addEventListener('click', (e) => {
+  if (e.target === modalMove) closeMoveModal();
+});
+
+document.getElementById('move-submit').addEventListener('click', async () => {
+  const direction = moveDirectionSelect.value;
+  const target = moveTargetSelect.value;
+  const groupName = moveGroupContext;
+  if (!target) {
+    closeMoveModal();
     return;
   }
+  closeMoveModal();
+  await moveGroupTo(groupName, direction, target);
+});
 
-  const { error: err2 } = await supabaseClient
-    .from('tamu')
-    .update({ group_order: currentOrder })
-    .eq('group_tamu', neighborName);
+async function moveGroupTo(groupName, direction, targetGroupName) {
+  const list = allTamu.filter(t => !t.is_deleted);
+  const { sortedGroups } = groupRows(list);
 
-  if (err2) {
-    await showAlert('Gagal memindahkan grup: ' + err2.message);
+  const orderedNames = sortedGroups.map(([name]) => name);
+  const fromIndex = orderedNames.indexOf(groupName);
+  if (fromIndex === -1) return;
+  orderedNames.splice(fromIndex, 1);
+
+  const targetIndex = orderedNames.indexOf(targetGroupName);
+  if (targetIndex === -1) return;
+  const insertIndex = direction === 'before' ? targetIndex : targetIndex + 1;
+  orderedNames.splice(insertIndex, 0, groupName);
+
+  const results = await Promise.all(
+    orderedNames.map((name, i) =>
+      supabaseClient.from('tamu').update({ group_order: (i + 1) * 10 }).eq('group_tamu', name)
+    )
+  );
+
+  const failed = results.find(r => r.error);
+  if (failed) {
+    await showAlert('Gagal memindahkan grup: ' + failed.error.message);
   }
 }
 
