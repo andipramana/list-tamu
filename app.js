@@ -586,15 +586,9 @@ function downloadCsv(csv) {
   URL.revokeObjectURL(url);
 }
 
-document.getElementById('btn-export').addEventListener('click', async () => {
+document.getElementById('btn-export').addEventListener('click', () => {
   const csv = buildCsv();
-  try {
-    await navigator.clipboard.writeText(csv);
-    await showAlert('Data berhasil disalin. Tinggal paste (Ctrl+V) ke Google Sheets.');
-  } catch (e) {
-    downloadCsv(csv);
-    await showAlert('Tidak bisa menyalin otomatis, file CSV sudah diunduh sebagai gantinya.');
-  }
+  downloadCsv(csv);
 });
 
 // ---- Tab switching ----
