@@ -147,28 +147,16 @@ function renderRows(tbody, rows, isDihapus) {
       nameSpan.classList.add('editable-group');
       nameSpan.addEventListener('click', () => startGroupEdit(nameSpan, groupName));
 
-      const moveWrap = document.createElement('span');
-      moveWrap.className = 'group-move';
-
-      const btnUp = document.createElement('button');
-      btnUp.className = 'btn-move';
-      btnUp.innerHTML = MOVE_ICON_SVG;
-      btnUp.title = 'Naikkan grup';
-      btnUp.setAttribute('aria-label', 'Naikkan grup');
-      btnUp.disabled = index === 0;
-      btnUp.addEventListener('click', () => moveGroup(groupName, 'up'));
-      moveWrap.appendChild(btnUp);
-
-      const btnDown = document.createElement('button');
-      btnDown.className = 'btn-move';
-      btnDown.innerHTML = MOVE_ICON_SVG;
-      btnDown.title = 'Turunkan grup';
-      btnDown.setAttribute('aria-label', 'Turunkan grup');
-      btnDown.disabled = index === sortedGroups.length - 1;
-      btnDown.addEventListener('click', () => moveGroup(groupName, 'down'));
-      moveWrap.appendChild(btnDown);
-
-      headerTd.appendChild(moveWrap);
+      const btnMove = document.createElement('button');
+      btnMove.className = 'btn-move';
+      btnMove.innerHTML = MOVE_ICON_SVG;
+      btnMove.title = 'Pindah grup';
+      btnMove.setAttribute('aria-label', 'Pindah grup');
+      btnMove.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openMoveMenu(btnMove, groupName, index === 0, index === sortedGroups.length - 1);
+      });
+      headerTd.appendChild(btnMove);
     }
 
     headerTr.appendChild(headerTd);
@@ -216,6 +204,45 @@ function makeGuestRow(t, isDihapus) {
   tr.appendChild(actionTd);
   return tr;
 }
+
+// ---- Menu pindah grup (satu ikon, popover naik/turun) ----
+
+const moveMenu = document.getElementById('move-menu');
+const moveUpBtn = document.getElementById('move-up-btn');
+const moveDownBtn = document.getElementById('move-down-btn');
+
+function openMoveMenu(anchorEl, groupName, isFirst, isLast) {
+  const rect = anchorEl.getBoundingClientRect();
+  moveMenu.style.top = `${rect.bottom + 4}px`;
+  moveMenu.style.right = `${window.innerWidth - rect.right}px`;
+  moveMenu.style.left = 'auto';
+  moveMenu.dataset.group = groupName;
+  moveUpBtn.disabled = isFirst;
+  moveDownBtn.disabled = isLast;
+  moveMenu.classList.remove('hidden');
+}
+
+function closeMoveMenu() {
+  moveMenu.classList.add('hidden');
+}
+
+moveUpBtn.addEventListener('click', () => {
+  const groupName = moveMenu.dataset.group;
+  closeMoveMenu();
+  moveGroup(groupName, 'up');
+});
+
+moveDownBtn.addEventListener('click', () => {
+  const groupName = moveMenu.dataset.group;
+  closeMoveMenu();
+  moveGroup(groupName, 'down');
+});
+
+document.addEventListener('click', (e) => {
+  if (!moveMenu.classList.contains('hidden') && !moveMenu.contains(e.target)) {
+    closeMoveMenu();
+  }
+});
 
 async function moveGroup(groupName, direction) {
   const list = allTamu.filter(t => !t.is_deleted);

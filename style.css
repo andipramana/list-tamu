@@ -211,13 +211,8 @@ td input {
   width: 100%;
 }
 
-.group-move {
-  display: flex;
-  gap: 4px;
-  flex-shrink: 0;
-}
-
 .btn-move {
+  flex-shrink: 0;
   width: 26px;
   height: 26px;
   padding: 0;
@@ -230,8 +225,37 @@ td input {
   border-radius: 6px;
 }
 
-.btn-move:disabled {
-  opacity: 0.3;
+.move-menu {
+  position: fixed;
+  z-index: 30;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-width: 160px;
+}
+
+.move-menu.hidden {
+  display: none;
+}
+
+.move-menu-item {
+  background: #fff;
+  color: #222;
+  text-align: left;
+  padding: 10px 14px;
+  font-size: 0.85rem;
+  border-radius: 0;
+}
+
+.move-menu-item:hover:not(:disabled) {
+  background: #f0f0f0;
+}
+
+.move-menu-item:disabled {
+  color: #bbb;
   cursor: not-allowed;
 }
 
