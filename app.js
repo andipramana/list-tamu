@@ -580,14 +580,16 @@ function buildCsv() {
   const rows = allTamu.filter(t => t.is_deleted === isDihapusActive);
   const { sortedGroups, noGroup } = groupRows(rows);
 
-  const lines = [['Group Tamu', 'Nama', 'Jumlah'].join(',')];
+  const blankCols = ['', '', '', ''];
+
+  const lines = [['Group Tamu', 'Nama', ...blankCols, 'Jumlah'].join(',')];
   for (const [groupName, items] of sortedGroups) {
     for (const t of items) {
-      lines.push([groupName, t.nama, t.jumlah].map(csvEscape).join(','));
+      lines.push([groupName, t.nama, ...blankCols, t.jumlah].map(csvEscape).join(','));
     }
   }
   for (const t of noGroup) {
-    lines.push(['', t.nama, t.jumlah].map(csvEscape).join(','));
+    lines.push(['', t.nama, ...blankCols, t.jumlah].map(csvEscape).join(','));
   }
   return lines.join('\n');
 }
