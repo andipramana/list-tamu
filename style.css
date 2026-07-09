@@ -176,12 +176,33 @@ thead th {
   border-bottom: 1px solid #ddd;
 }
 
-td.editable {
+.editable {
   cursor: pointer;
 }
 
-td.editable:hover {
+.editable:hover {
   background: rgba(26, 135, 84, 0.08);
+}
+
+td .editable {
+  display: block;
+}
+
+.badge-hadir {
+  display: block;
+  margin-top: 3px;
+  padding: 1px 7px;
+  font-size: 0.65rem;
+  border-radius: 10px;
+  border: none;
+  background: #dff5e6;
+  color: #1a8754;
+  width: fit-content;
+}
+
+.badge-tidak-hadir {
+  background: #e5e5e5;
+  color: #666;
 }
 
 td input {

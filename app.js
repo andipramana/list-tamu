@@ -33,6 +33,7 @@ const countList = document.getElementById('count-list');
 const countDihapus = document.getElementById('count-dihapus');
 const statTamu = document.getElementById('stat-tamu');
 const statOrang = document.getElementById('stat-orang');
+const statTidakHadir = document.getElementById('stat-tidak-hadir');
 const groupSuggestions = document.getElementById('group-suggestions');
 const fabTambah = document.getElementById('fab-tambah');
 
@@ -101,8 +102,10 @@ function render() {
   countDihapus.textContent = dihapus.length;
 
   const totalOrang = list.reduce((sum, t) => sum + (t.jumlah || 0), 0);
+  const tidakHadirCount = list.filter(t => t.mungkin_tidak_hadir).length;
   statTamu.textContent = list.length;
   statOrang.textContent = totalOrang;
+  statTidakHadir.textContent = tidakHadirCount;
 
   renderGroupSuggestions(list);
   renderRows(bodyList, list, false);
@@ -162,16 +165,17 @@ function renderRows(tbody, rows, isDihapus) {
     headerInner.className = 'group-header-inner';
     headerTd.appendChild(headerInner);
 
-    const groupTotal = groupItems.reduce((sum, t) => sum + (t.jumlah || 0), 0);
+    const hadirCount = groupItems.filter(t => !t.mungkin_tidak_hadir).length;
+    const totalCount = groupItems.length;
 
     const nameSpan = document.createElement('span');
     nameSpan.className = 'group-name';
-    nameSpan.textContent = `${groupName} (${groupTotal})`;
+    nameSpan.textContent = `${groupName} (${hadirCount}/${totalCount})`;
     headerInner.appendChild(nameSpan);
 
     if (!isDihapus) {
       nameSpan.classList.add('editable-group');
-      nameSpan.addEventListener('click', () => startGroupEdit(nameSpan, groupName, groupTotal));
+      nameSpan.addEventListener('click', () => startGroupEdit(nameSpan, groupName, hadirCount, totalCount));
 
       const btnAddToGroup = document.createElement('button');
       btnAddToGroup.className = 'btn-move';
@@ -212,7 +216,7 @@ function renderRows(tbody, rows, isDihapus) {
 function makeGuestRow(t, isDihapus) {
   const tr = document.createElement('tr');
 
-  tr.appendChild(makeEditableCell(t, 'nama', isDihapus));
+  tr.appendChild(makeNamaCell(t, isDihapus));
   tr.appendChild(makeEditableCell(t, 'jumlah', isDihapus, 'number'));
 
   const actionTd = document.createElement('td');
@@ -335,10 +339,10 @@ async function moveGroupTo(groupName, direction, targetGroupName) {
   }
 }
 
-function startGroupEdit(td, oldGroupName, groupTotal) {
+function startGroupEdit(td, oldGroupName, hadirCount, totalCount) {
   if (td.querySelector('input')) return;
 
-  const labelWithTotal = (name) => `${name} (${groupTotal})`;
+  const labelWithTotal = (name) => `${name} (${hadirCount}/${totalCount})`;
 
   const input = document.createElement('input');
   input.type = 'text';
@@ -375,6 +379,46 @@ function startGroupEdit(td, oldGroupName, groupTotal) {
     if (e.key === 'Enter') input.blur();
     if (e.key === 'Escape') td.textContent = labelWithTotal(oldGroupName);
   });
+}
+
+function makeNamaCell(t, isDihapus) {
+  const td = document.createElement('td');
+
+  const nameSpan = document.createElement('span');
+  nameSpan.textContent = t.nama;
+  td.appendChild(nameSpan);
+
+  if (!isDihapus) {
+    nameSpan.className = 'editable';
+    nameSpan.addEventListener('click', () => startEdit(nameSpan, t, 'nama'));
+
+    const badge = document.createElement('button');
+    badge.className = 'badge-hadir' + (t.mungkin_tidak_hadir ? ' badge-tidak-hadir' : '');
+    badge.textContent = t.mungkin_tidak_hadir ? 'Tidak Hadir' : 'Hadir';
+    badge.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleHadir(t);
+    });
+    td.appendChild(badge);
+  }
+
+  return td;
+}
+
+async function toggleHadir(row) {
+  const newValue = !row.mungkin_tidak_hadir;
+  const { error } = await supabaseClient
+    .from('tamu')
+    .update({ mungkin_tidak_hadir: newValue })
+    .eq('id', row.id);
+
+  if (error) {
+    await showAlert('Gagal mengubah status kehadiran: ' + error.message);
+    return;
+  }
+
+  row.mungkin_tidak_hadir = newValue;
+  render();
 }
 
 function makeEditableCell(row, field, isDihapus, inputType) {
